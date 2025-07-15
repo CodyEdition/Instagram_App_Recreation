@@ -2,12 +2,9 @@ package com.example.instagramrecreation;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Button;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,39 +14,17 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Highlights RecyclerView
-        RecyclerView highlightsRecycler = findViewById(R.id.recycler_highlights);
-        highlightsRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        List<String> highlights = new ArrayList<>();
-        for (int i = 0; i < 6; i++) highlights.add("Highlight " + (i+1));
-        highlightsRecycler.setAdapter(new HighlightsAdapter(highlights));
-
         // Posts RecyclerView
         RecyclerView postsRecycler = findViewById(R.id.recycler_posts);
         postsRecycler.setLayoutManager(new GridLayoutManager(this, 3));
         List<Integer> posts = new ArrayList<>();
-        for (int i = 0; i < 12; i++) posts.add(android.R.drawable.ic_menu_gallery);
+        
+        // Add only the three actual post images from the Instagram profile
+        posts.add(R.drawable.post_music_video);
+        posts.add(R.drawable.post_electronic_device);
+        posts.add(R.drawable.post_remove_before_flight);
+        
         postsRecycler.setAdapter(new PostsAdapter(posts));
-    }
-}
-
-// Simple Adapter for Highlights
-class HighlightsAdapter extends RecyclerView.Adapter<HighlightsAdapter.HighlightViewHolder> {
-    private final List<String> highlights;
-    HighlightsAdapter(List<String> highlights) { this.highlights = highlights; }
-    @Override
-    public HighlightViewHolder onCreateViewHolder(android.view.ViewGroup parent, int viewType) {
-        android.view.View view = android.view.LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
-        return new HighlightViewHolder(view);
-    }
-    @Override
-    public void onBindViewHolder(HighlightViewHolder holder, int position) {
-        ((TextView) holder.itemView).setText(highlights.get(position));
-    }
-    @Override
-    public int getItemCount() { return highlights.size(); }
-    static class HighlightViewHolder extends RecyclerView.ViewHolder {
-        HighlightViewHolder(android.view.View itemView) { super(itemView); }
     }
 }
 
@@ -59,24 +34,51 @@ class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.PostViewHolder> {
     PostsAdapter(List<Integer> posts) { this.posts = posts; }
     @Override
     public PostViewHolder onCreateViewHolder(android.view.ViewGroup parent, int viewType) {
-        ImageView imageView = new ImageView(parent.getContext());
+        // Create a FrameLayout to hold both the image and carousel indicator
+        android.widget.FrameLayout frameLayout = new android.widget.FrameLayout(parent.getContext());
         int size = parent.getResources().getDisplayMetrics().widthPixels / 3;
-        imageView.setLayoutParams(new RecyclerView.LayoutParams(size, size));
+        frameLayout.setLayoutParams(new RecyclerView.LayoutParams(size, size));
+        frameLayout.setPadding(1, 1, 1, 1);
+        
+        // Create the main image view
+        ImageView imageView = new ImageView(parent.getContext());
+        android.widget.FrameLayout.LayoutParams imageParams = new android.widget.FrameLayout.LayoutParams(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        imageView.setLayoutParams(imageParams);
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imageView.setPadding(2,2,2,2);
-        return new PostViewHolder(imageView);
+        frameLayout.addView(imageView);
+        
+        return new PostViewHolder(frameLayout, imageView);
     }
     @Override
     public void onBindViewHolder(PostViewHolder holder, int position) {
         holder.imageView.setImageResource(posts.get(position));
+        
+        // Add carousel indicator to the second post (position 1)
+        if (position == 1) {
+            ImageView carouselIndicator = new ImageView(holder.itemView.getContext());
+            android.widget.FrameLayout.LayoutParams indicatorParams = new android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            indicatorParams.gravity = android.view.Gravity.TOP | android.view.Gravity.END;
+            indicatorParams.setMargins(0, 8, 8, 0);
+            carouselIndicator.setLayoutParams(indicatorParams);
+            carouselIndicator.setImageResource(R.drawable.ic_carousel_indicator);
+            carouselIndicator.setScaleX(-0.8f); // Negative scaleX flips horizontally
+            carouselIndicator.setScaleY(0.8f);
+            ((android.widget.FrameLayout) holder.itemView).addView(carouselIndicator);
+        }
     }
     @Override
     public int getItemCount() { return posts.size(); }
     static class PostViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
-        PostViewHolder(ImageView itemView) {
+        PostViewHolder(android.view.View itemView, ImageView imageView) {
             super(itemView);
-            imageView = itemView;
+            this.imageView = imageView;
         }
     }
 } 
